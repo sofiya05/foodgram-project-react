@@ -6,7 +6,7 @@ from django.urls import reverse
 
 User = get_user_model()
 
-from recipes.models import Tag, Ingredient, Recipe
+from recipes.models import Ingredient, Recipe, Tag
 
 
 class TestRouters(TestCase):

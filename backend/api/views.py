@@ -1,13 +1,8 @@
-from rest_framework import viewsets, filters
-
-from api.serializers import (
-    IngredientSerializer,
-    TagSerializer,
-    RecipeSerializer,
-)
-from recipes.models import Ingredient, Tag, Recipe
-
+from api.serializers import (IngredientSerializer, RecipeSerializer,
+                             TagSerializer)
 from django.contrib.auth import get_user_model
+from recipes.models import Ingredient, Recipe, Tag
+from rest_framework import filters, viewsets
 
 User = get_user_model()
 

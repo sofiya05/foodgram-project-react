@@ -1,12 +1,14 @@
 import base64
-import webcolors
-from rest_framework import serializers
-from django.core.files.base import ContentFile
 
-from recipes.models import Ingredient, Tag, Recipe, RecipeIngredient
+import webcolors
+from django.core.files.base import ContentFile
+from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
+from rest_framework import serializers
 
 
 class Hex2NameColor(serializers.Field):
+    '''Поле для перевода цвета из HEX в человекочитаемый язык'''
+
     def to_representation(self, value):
         return value
 
@@ -19,6 +21,8 @@ class Hex2NameColor(serializers.Field):
 
 
 class TagSerializer(serializers.ModelSerializer):
+    '''Сериализатор для тегов'''
+
     color = Hex2NameColor()
 
     class Meta:
@@ -32,6 +36,8 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
+    '''Сериализатор для ингридиентов'''
+
     class Meta:
         model = Ingredient
         fields = (
@@ -42,6 +48,8 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class Base64ImageField(serializers.ImageField):
+    '''Поле для загрузки картинки из Base64'''
+
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
             format, imgstr = data.split(';base64,')
@@ -53,12 +61,16 @@ class Base64ImageField(serializers.ImageField):
 
 
 class TagSlugField(serializers.SlugRelatedField):
+    '''Кастомное слаг поле для тегов'''
+
     def to_representation(self, obj):
         serializers = TagSerializer(obj)
         return serializers.data
 
 
 class RecipeSerializer(serializers.ModelSerializer):
+    '''Сериализатор для рецептов'''
+
     tags = TagSlugField(many=True, slug_field='id', queryset=Tag.objects.all())
     ingredients = IngredientSerializer(many=True, read_only=True)
     image = Base64ImageField()
