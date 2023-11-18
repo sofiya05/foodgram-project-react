@@ -15,7 +15,7 @@ class Command(BaseCommand):
         model.objects.bulk_create(models)
 
     def handle(self, *args: Any, **options: Any):
-        path = '../data/'
+        path = os.getcwd() + '/data'
         for filename in os.listdir(path):
             with open(
                 os.path.join(path, filename), 'r', encoding='UTF-8'

@@ -25,7 +25,7 @@ class RecipeAdmin(admin.ModelAdmin):
     list_filter = ('author', 'name', 'tags')
 
     def count_favorites(self, obj):
-        return obj.favorites.count()
+        return obj.recipe.count()
 
 
 admin.site.register(Tag, TagAdmin)
