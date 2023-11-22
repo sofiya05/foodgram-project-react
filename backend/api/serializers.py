@@ -2,18 +2,9 @@ import base64
 
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
+from recipes.models import (FavoriteRecipe, Ingredient, Recipe,
+                            RecipeIngredient, RecipeTag, ShopingCart, Tag)
 from rest_framework import serializers
-
-from recipes.models import (
-    FavoriteRecipe,
-    Ingredient,
-    Recipe,
-    RecipeIngredient,
-    RecipeTag,
-    ShopingCart,
-    Tag,
-)
-from users.models import SubscribeUser
 from users.serializers import UserSerializer
 
 User = get_user_model()

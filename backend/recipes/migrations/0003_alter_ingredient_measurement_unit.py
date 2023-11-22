@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('recipes', '0002_initial'),
     ]
@@ -13,6 +12,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='ingredient',
             name='measurement_unit',
-            field=models.CharField(max_length=20, verbose_name='Единица измерения'),
+            field=models.CharField(
+                max_length=20, verbose_name='Единица измерения'
+            ),
         ),
     ]

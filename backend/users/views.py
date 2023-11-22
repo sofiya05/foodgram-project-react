@@ -1,11 +1,10 @@
+from api.serializers import SubscribeUserSerializer
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as UVS
 from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
-from api.serializers import SubscribeUserSerializer
 from users.models import SubscribeUser
 
 User = get_user_model()

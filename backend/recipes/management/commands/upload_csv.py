@@ -3,7 +3,6 @@ import os
 from typing import Any
 
 from django.core.management.base import BaseCommand
-
 from recipes.models import Ingredient, Tag
 
 
