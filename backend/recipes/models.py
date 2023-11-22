@@ -8,7 +8,7 @@ User = get_user_model()
 
 class Ingredient(models.Model):
     name = models.CharField('Имя ингредиента', max_length=100)
-    measurement_unit = models.CharField('Единица измерения', max_length=5)
+    measurement_unit = models.CharField('Единица измерения', max_length=20)
 
     class Meta:
         verbose_name = 'Ингредиенты'
@@ -55,8 +55,12 @@ class Recipe(models.Model):
 
 
 class RecipeTag(models.Model):
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
-    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(
+        Recipe, on_delete=models.CASCADE, related_name='recipesTag'
+    )
+    tag = models.ForeignKey(
+        Tag, on_delete=models.CASCADE, related_name='tagsRecipes'
+    )
 
     class Meta:
         verbose_name = 'Теги рецептов'
@@ -67,10 +71,16 @@ class RecipeTag(models.Model):
 
 class RecipeIngredient(models.Model):
     ingredient = models.ForeignKey(
-        Ingredient, on_delete=models.CASCADE, related_name='ingredients'
+        Ingredient,
+        verbose_name='Ингредиент',
+        on_delete=models.CASCADE,
+        related_name='ingredients',
     )
     recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, related_name='recipes'
+        Recipe,
+        verbose_name='Рецепт',
+        on_delete=models.CASCADE,
+        related_name='recipes',
     )
     amount = models.IntegerField('Количество')
 

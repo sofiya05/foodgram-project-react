@@ -14,7 +14,7 @@ from api.serializers import (
     ShortRecipeSerializer,
     TagSerializer,
 )
-from foodgram_backend.filters import AuthorAndTagFilter
+from foodgram_backend.filters import AuthorAndTagFilter, IngredientFilter
 from foodgram_backend.permissions import IsAuthorizedOwnerOrReadOnly
 from recipes.models import FavoriteRecipe, Ingredient, Recipe, ShopingCart, Tag
 
@@ -30,10 +30,9 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    filter_backends = (filters.SearchFilter, DjangoFilterBackend)
-    filterset_fields = ('name',)
-    pagination_class = None
+    filter_backends = (IngredientFilter,)
     search_fields = ('^name',)
+    pagination_class = None
 
 
 class RecipeViewSet(viewsets.ModelViewSet):

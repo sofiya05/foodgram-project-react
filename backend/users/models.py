@@ -29,4 +29,4 @@ class SubscribeUser(models.Model):
         ]
 
     def __str__(self) -> str:
-        return f'Пользователь {self.follower}, отслеживает {self.following}'
+        return f'Пользователь {self.following}, отслеживает {self.follower}'

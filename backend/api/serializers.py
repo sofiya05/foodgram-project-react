@@ -252,7 +252,8 @@ class SubscribeUserSerializer(UserSerializer):
 
     def get_recipes(self, obj):
         limit = self.context.get('request').GET.get('recipes_limit')
-        queryset = SubscribeUser.objects.filter(following=obj)
+        user = User.objects.get(pk=obj.pk)
+        queryset = user.recipes.all()
         if limit:
             queryset = queryset[: int(limit)]
         return ShortRecipeSerializer(queryset, many=True, read_only=True).data
