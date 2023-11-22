@@ -1,10 +1,11 @@
-from api.serializers import SubscribeUserSerializer
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as UVS
 from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+
+from api.serializers import SubscribeUserSerializer
 from users.models import SubscribeUser
 
 User = get_user_model()
@@ -12,7 +13,7 @@ User = get_user_model()
 
 class UserViewSet(UVS):
     @action(
-        ["get", "put", "patch", "delete"],
+        ['get', 'put', 'patch', 'delete'],
         detail=False,
         permission_classes=(permissions.IsAuthenticated,),
     )

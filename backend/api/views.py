@@ -1,17 +1,22 @@
-from api.serializers import (IngredientSerializer, RecipeSerializer,
-                             ShortRecipeSerializer, TagSerializer)
 from django.contrib.auth import get_user_model
 from django.db.utils import IntegrityError
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from foodgram_backend.filters import AuthorAndTagFilter, IngredientFilter
-from foodgram_backend.permissions import IsAuthorizedOwnerOrReadOnly
-from recipes.models import FavoriteRecipe, Ingredient, Recipe, ShopingCart, Tag
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from api.serializers import (
+    IngredientSerializer,
+    RecipeSerializer,
+    ShortRecipeSerializer,
+    TagSerializer,
+)
+from foodgram_backend.filters import AuthorAndTagFilter, IngredientFilter
+from foodgram_backend.permissions import IsAuthorizedOwnerOrReadOnly
+from recipes.models import FavoriteRecipe, Ingredient, Recipe, ShopingCart, Tag
 
 User = get_user_model()
 

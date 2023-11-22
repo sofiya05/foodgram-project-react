@@ -1,7 +1,15 @@
 from django import forms
 from django.contrib import admin
-from recipes.models import (FavoriteRecipe, Ingredient, Recipe,
-                            RecipeIngredient, RecipeTag, ShopingCart, Tag)
+
+from recipes.models import (
+    FavoriteRecipe,
+    Ingredient,
+    Recipe,
+    RecipeIngredient,
+    RecipeTag,
+    ShopingCart,
+    Tag,
+)
 
 
 @admin.register(Tag)

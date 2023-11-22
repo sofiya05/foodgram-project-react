@@ -2,16 +2,24 @@ import base64
 
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
-from recipes.models import (FavoriteRecipe, Ingredient, Recipe,
-                            RecipeIngredient, RecipeTag, ShopingCart, Tag)
 from rest_framework import serializers
+
+from recipes.models import (
+    FavoriteRecipe,
+    Ingredient,
+    Recipe,
+    RecipeIngredient,
+    RecipeTag,
+    ShopingCart,
+    Tag,
+)
 from users.serializers import UserSerializer
 
 User = get_user_model()
 
 
 class Base64ImageField(serializers.ImageField):
-    '''Поле для загрузки картинки из Base64'''
+    """Поле для загрузки картинки из Base64"""
 
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
@@ -51,7 +59,7 @@ class FavoriteRecipeSerializer(serializers.ModelSerializer):
 
 
 class TagSerializer(serializers.ModelSerializer):
-    '''Сериализатор для тегов'''
+    """Сериализатор для тегов"""
 
     class Meta:
         model = Tag
@@ -64,7 +72,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
-    '''Сериализатор для ингридиентов'''
+    """Сериализатор для ингридиентов"""
 
     class Meta:
         model = Ingredient
@@ -76,7 +84,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
-    '''Сериализатор для списка покупок'''
+    """Сериализатор для списка покупок"""
 
     class Meta:
         model = ShopingCart
@@ -100,7 +108,7 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 
 
 class TagSlugField(serializers.SlugRelatedField):
-    '''Кастомное слаг поле для тегов'''
+    """Кастомное слаг поле для тегов"""
 
     def to_representation(self, obj):
         serializer = TagSerializer(obj)
@@ -108,7 +116,7 @@ class TagSlugField(serializers.SlugRelatedField):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    '''Сериализатор для рецептов'''
+    """Сериализатор для рецептов"""
 
     tags = TagSlugField(many=True, slug_field='id', queryset=Tag.objects.all())
     ingredients = serializers.SerializerMethodField()
