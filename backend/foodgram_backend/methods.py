@@ -16,7 +16,8 @@ def create_file(request, ingredients):
         f'{request.user.first_name} {request.user.last_name}\n'
     )
     for ingredient in ingredients:
-        text += f'{ingredient["recipe__recipes__ingredient__name"]}: '(
+        text += (
+            f'{ingredient["recipe__recipes__ingredient__name"]}: '
             f'{ingredient["amount"]}'
             f'{ingredient["recipe__recipes__ingredient__measurement_unit"]}\n'
         )
