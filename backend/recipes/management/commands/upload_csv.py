@@ -12,10 +12,16 @@ class Command(BaseCommand):
         models = []
         for row in data:
             models.append(model(**row))
-        model.objects.bulk_create(models)
+        return model.objects.bulk_create(models)
 
     def handle(self, *args: Any, **options: Any):
         path = os.getcwd() + '/data'
+        if 'ingredients.csv' and 'tags.csv' not in os.listdir(path):
+            raise FileNotFoundError(
+                'Файл ingredients.csv или tags.csv не найден!'
+            )
+        Ingredient.objects.all().delete()
+        Tag.objects.all().delete()
         for filename in os.listdir(path):
             with open(
                 os.path.join(path, filename), 'r', encoding='UTF-8'
@@ -23,6 +29,15 @@ class Command(BaseCommand):
                 file_reader = csv.DictReader(file)
                 if filename == 'ingredients.csv':
                     self.upload(file_reader, Ingredient)
+                    print(
+                        'Upload Ingredients\t\t'
+                        + '\033[32m{}'.format('OK')
+                        + '\033[0m'
+                    )
                 elif filename == 'tags.csv':
                     self.upload(file_reader, Tag)
-        print('done!')
+                    print(
+                        'upload tags\t\t'
+                        + '\033[32m{}'.format('OK')
+                        + '\033[0m'
+                    )

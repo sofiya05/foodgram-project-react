@@ -7,7 +7,7 @@ from recipes.models import (
     Recipe,
     RecipeIngredient,
     RecipeTag,
-    ShopingCart,
+    ShoppingCart,
     Tag,
 )
 
@@ -31,10 +31,6 @@ class TagsForm(forms.ModelForm):
     )
 
 
-# пыталась добавить поле read_only_fields которое
-# показывало бы measurement_unit но не получилось
-# related Manager и ingredient.measurement_unit
-# не работают
 class IngrediensInLine(admin.TabularInline):
     model = RecipeIngredient
     min_num = 1
@@ -42,17 +38,20 @@ class IngrediensInLine(admin.TabularInline):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'author', 'count_favorites')
+    list_display = ('name', 'author', 'count_favorites', 'ingredients')
     list_filter = ('author', 'name', 'tags')
     form = TagsForm
     model = Recipe
     inlines = (IngrediensInLine,)
 
     def count_favorites(self, obj):
-        return obj.recipe.count()
+        return obj.recipes_favoriterecipe_recipe.count()
+
+    def ingredients(self, obj):
+        return obj.recipes.all()
 
 
-admin.site.register(ShopingCart)
+admin.site.register(ShoppingCart)
 admin.site.register(FavoriteRecipe)
 admin.site.register(RecipeIngredient)
 admin.site.register(RecipeTag)

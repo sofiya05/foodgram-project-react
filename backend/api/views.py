@@ -1,22 +1,29 @@
 from django.contrib.auth import get_user_model
-from django.db.utils import IntegrityError
-from django.http import HttpResponse
+from django.db.models import Sum
+from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, permissions, status, viewsets
+from rest_framework import filters, permissions, viewsets
 from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.views import APIView
 
+from api.filters import AuthorAndTagFilter, IngredientFilter
+from api.permissions import IsAuthorizedOwnerOrReadOnly
 from api.serializers import (
+    FavoriteRecipeSerializer,
+    GetRecipeSerializer,
     IngredientSerializer,
-    RecipeSerializer,
-    ShortRecipeSerializer,
+    PostRecipeSerializer,
+    ShoppingCartSerializer,
     TagSerializer,
 )
-from foodgram_backend.filters import AuthorAndTagFilter, IngredientFilter
-from foodgram_backend.permissions import IsAuthorizedOwnerOrReadOnly
-from recipes.models import FavoriteRecipe, Ingredient, Recipe, ShopingCart, Tag
+from foodgram_backend.methods import create_file, create_obj, mapping_delete
+from recipes.models import (
+    FavoriteRecipe,
+    Ingredient,
+    Recipe,
+    ShoppingCart,
+    Tag,
+)
 
 User = get_user_model()
 
@@ -36,8 +43,11 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    queryset = Recipe.objects.all()
-    serializer_class = RecipeSerializer
+    queryset = (
+        Recipe.objects.all()
+        .select_related('author')
+        .prefetch_related('tags', 'ingredients')
+    )
     filter_backends = (filters.OrderingFilter, DjangoFilterBackend)
     filterset_class = AuthorAndTagFilter
     permission_classes = (IsAuthorizedOwnerOrReadOnly,)
@@ -49,116 +59,56 @@ class RecipeViewSet(viewsets.ModelViewSet):
         'delete',
     )
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return GetRecipeSerializer
+        return PostRecipeSerializer
 
-    @action(
-        methods=['post', 'delete'],
-        detail=True,
-    )
+    @action(methods=['POST'], detail=True)
     def favorite(self, request, pk=None):
-        if request.method == 'POST':
-            try:
-                recipe = Recipe.objects.get(pk=pk)
-            except Recipe.DoesNotExist:
-                return Response(
-                    {'errors': 'Такого рецепта не существует!'},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            try:
-                FavoriteRecipe.objects.create(user=request.user, recipe=recipe)
-                return Response(
-                    ShortRecipeSerializer(recipe).data,
-                    status=status.HTTP_201_CREATED,
-                )
-            except IntegrityError:
-                return Response(
-                    {'errors': 'Этот рецепт уже добавлен в избранное!'},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-        else:
-            try:
-                self.perform_destroy(
-                    FavoriteRecipe.objects.get(
-                        user=request.user,
-                        recipe=get_object_or_404(Recipe, pk=pk),
-                    )
-                )
-            except FavoriteRecipe.DoesNotExist:
-                return Response(
-                    {'errors': 'Этот не добавлен в избранное!'},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+        return create_obj(
+            FavoriteRecipeSerializer, {'user': request.user.pk, 'recipe': pk}
+        )
 
-            return Response(status=status.HTTP_204_NO_CONTENT)
+    @favorite.mapping.delete
+    def del_favorite(self, request, pk=None):
+        get_object_or_404(Recipe, pk=pk)
+        return mapping_delete(
+            FavoriteRecipe.objects.filter(user=request.user, recipe_id=pk),
+            'Этот рецепт не добавлен в избранное!',
+        )
 
     @action(
-        methods=['get'],
+        methods=['GET'],
         detail=False,
         permission_classes=(permissions.IsAuthenticated,),
     )
     def download_shopping_cart(self, request):
-        cart_dict = {}
-        user = request.user
-        for cart in user.cart.all():
-            for ingredient in cart.recipe.recipes.all():
-                if ingredient.ingredient.name not in cart_dict.keys():
-                    cart_dict[ingredient.ingredient.name] = ingredient.amount
-                else:
-                    cart_dict[ingredient.ingredient.name] += ingredient.amount
-
-        file = open(
-            user.username + '_shopping_cart.txt', 'w', encoding='UTF-8'
+        ingredients = (
+            (
+                ShoppingCart.objects.filter(
+                    recipe__recipes_shoppingcart_recipe__user=request.user
+                )
+            )
+            .values(
+                'recipe__recipes__ingredient__name',
+                'recipe__recipes__ingredient__measurement_unit',
+            )
+            .annotate(amount=Sum('recipe__recipes__amount'))
         )
-        file.write('Список покупок пользователя: ' + user.username + '\n')
-        for key, value in cart_dict.items():
-            file.write(key + ': ' + str(value) + '\n')
-        file.close()
-        file = open(
-            user.username + '_shopping_cart.txt', 'r', encoding='UTF-8'
+        file = create_file(request, ingredients)
+        return FileResponse(open(file.name, 'rb'))
+
+    @action(methods=['POST'], detail=True)
+    def shopping_cart(self, request, pk=None):
+        return create_obj(
+            ShoppingCartSerializer, {'user': request.user.pk, 'recipe': pk}
         )
-        response = HttpResponse(file, content_type='whatever')
-        response['Content-Disposition'] = (
-            'attachment; filename="%s"' % file.name
+
+    @shopping_cart.mapping.delete
+    def del_shopping_cart(self, request, pk=None):
+        get_object_or_404(Recipe, pk=pk)
+        return mapping_delete(
+            ShoppingCart.objects.filter(user=request.user, recipe_id=pk),
+            'Этот рецепт не добавлен в ваш список покупок!',
         )
-        return response
-
-
-# пыталась делать этот класс на viewsets
-# и миксинах но роутер по непонятным причинам
-# ограничивал метод delete и ему было все равно
-# явно указаны доступные методы или нет
-class ShopingCartAPIView(APIView):
-    permission_classes = (permissions.IsAuthenticated,)
-
-    def post(self, request, *args, **kwargs):
-        try:
-            recipe = Recipe.objects.get(pk=kwargs.get('id'))
-            ShopingCart.objects.create(recipe=recipe, user=request.user)
-            return Response(
-                ShortRecipeSerializer(recipe).data,
-                status=status.HTTP_201_CREATED,
-            )
-        except IntegrityError:
-            return Response(
-                {'errors': 'Этот рецепт уже добавлен в список покупок!'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        except Recipe.DoesNotExist:
-            return Response(
-                {'errors': 'Такого рецепта не сущестует!'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-    def delete(self, request, *args, **kwargs):
-        try:
-            ShopingCart.objects.get(
-                recipe=get_object_or_404(Recipe, pk=kwargs.get('id')),
-                user=request.user,
-            ).delete()
-        except ShopingCart.DoesNotExist:
-            return Response(
-                {'errors': 'Этот рецепт не добавлен в ваш список покупок!'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        return Response(status=status.HTTP_204_NO_CONTENT)

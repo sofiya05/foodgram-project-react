@@ -1,24 +1,19 @@
-from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as UVS
-from rest_framework import permissions, status
+from rest_framework import permissions
 from rest_framework.decorators import action
-from rest_framework.response import Response
 
 from api.serializers import SubscribeUserSerializer
+from foodgram_backend.methods import create_obj, mapping_delete
+from recipes.models import User
 from users.models import SubscribeUser
-
-User = get_user_model()
 
 
 class UserViewSet(UVS):
-    @action(
-        ['get', 'put', 'patch', 'delete'],
-        detail=False,
-        permission_classes=(permissions.IsAuthenticated,),
-    )
-    def me(self, request, *args, **kwargs):
-        return super().me(request, *args, **kwargs)
+    def get_permissions(self):
+        if self.action == 'me':
+            self.permission_classes = (permissions.IsAuthenticated,)
+        return super().get_permissions()
 
     @action(
         methods=['post'],
@@ -26,44 +21,19 @@ class UserViewSet(UVS):
         permission_classes=(permissions.IsAuthenticated,),
     )
     def subscribe(self, request, id=None):
-        user = get_object_or_404(User, id=id)
-
-        if request.user == user:
-            return Response(
-                {'errors': 'Вы не можете подписываться на самого себя'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        if SubscribeUser.objects.filter(
-            following=request.user, follower=user
-        ).exists():
-            return Response(
-                {'errors': 'Вы уже подписаны на данного пользователя'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        SubscribeUser.objects.create(following=request.user, follower=user)
-        serializer = SubscribeUserSerializer(
-            user, context={'request': request}
+        get_object_or_404(User, pk=id)
+        return create_obj(
+            SubscribeUserSerializer,
+            {'user': request.user.pk, 'author': id},
+            {'request': request},
         )
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @subscribe.mapping.delete
     def del_subscribe(self, request, id=None):
-        user = get_object_or_404(User, id=id)
-        if user == request.user:
-            return Response(
-                {'errors': 'Вы не можете отписываться от самого себя'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        follow = SubscribeUser.objects.filter(
-            following=request.user, follower=user
-        )
-        if follow.exists():
-            follow.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-
-        return Response(
-            {'errors': 'Вы уже отписались'}, status=status.HTTP_400_BAD_REQUEST
+        get_object_or_404(User, pk=id)
+        return mapping_delete(
+            SubscribeUser.objects.filter(user=request.user, author__id=id),
+            'Вы не подписаны на этого пользователя!',
         )
 
     @action(
@@ -71,18 +41,9 @@ class UserViewSet(UVS):
         detail=False,
     )
     def subscriptions(self, request):
-        lst = User.objects.filter(follower__following=request.user)
-
-        queryset = self.filter_queryset(lst)
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = SubscribeUserSerializer(
-                page, many=True, context={'request': request}
-            )
-            return self.get_paginated_response(serializer.data)
-
+        data = request.user.follower.all()
+        page = self.paginate_queryset(data)
         serializer = SubscribeUserSerializer(
-            queryset, many=True, context={'request': request}
+            page, many=True, context={'request': request}
         )
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)
