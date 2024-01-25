@@ -38,7 +38,7 @@ class IngrediensInLine(admin.TabularInline):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'author', 'count_favorites', 'ingredients')
+    list_display = ('name', 'author', 'count_favorites', 'list_ingredients')
     list_filter = ('author', 'name', 'tags')
     form = TagsForm
     model = Recipe
@@ -47,8 +47,14 @@ class RecipeAdmin(admin.ModelAdmin):
     def count_favorites(self, obj):
         return obj.recipes_favoriterecipe_recipe.count()
 
-    def ingredients(self, obj):
-        return obj.recipes.all()
+    def list_ingredients(self, obj):
+        text = ''
+        for ingredient in obj.recipes.all():
+            text += (
+                f'{ingredient.ingredient} {ingredient.amount} '
+                f'{ingredient.ingredient.measurement_unit}, '
+            )
+        return text
 
 
 admin.site.register(ShoppingCart)
