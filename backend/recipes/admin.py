@@ -44,17 +44,20 @@ class RecipeAdmin(admin.ModelAdmin):
     model = Recipe
     inlines = (IngrediensInLine,)
 
+    @admin.display(description='Кол-во добавлений в избранное')
     def count_favorites(self, obj):
         return obj.recipes_favoriterecipe_recipe.count()
 
+    @admin.display(description='Список ингредиентов')
     def list_ingredients(self, obj):
-        text = ''
-        for ingredient in obj.recipes.all():
-            text += (
+        ingredients_list = [
+            (
                 f'{ingredient.ingredient} {ingredient.amount} '
-                f'{ingredient.ingredient.measurement_unit}, '
+                f'{ingredient.ingredient.measurement_unit}'
             )
-        return text
+            for ingredient in obj.recipes.all()
+        ]
+        return ', '.join(ingredients_list)
 
 
 admin.site.register(ShoppingCart)

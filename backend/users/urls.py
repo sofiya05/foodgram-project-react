@@ -1,7 +1,7 @@
 from django.urls import include, path
 from rest_framework import routers
 
-from users.views import UserViewSet
+from api.views import UserViewSet
 
 app_name = 'users'
 

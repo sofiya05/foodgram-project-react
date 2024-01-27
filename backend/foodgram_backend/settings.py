@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 
-DEBUG = os.getenv('DEBUG') == 'True'
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',')
 
@@ -90,7 +90,7 @@ DJOSER = {
 
 WSGI_APPLICATION = 'foodgram_backend.wsgi.application'
 
-if not DEBUG:
+if os.getenv('POSTGRES', 'False') == 'True':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',

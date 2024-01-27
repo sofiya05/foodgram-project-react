@@ -3,8 +3,10 @@ from rest_framework.permissions import BasePermission
 
 
 class IsAuthorizedOwnerOrReadOnly(BasePermission):
-    message = '''Учетные данные не были предоставлены или вы
-    не являетесь автором рецепта.'''
+    message = (
+        'Учетные данные не были предоставлены или вы '
+        'не являетесь автором рецепта.'
+    )
 
     def has_permission(self, request, view):
         return (

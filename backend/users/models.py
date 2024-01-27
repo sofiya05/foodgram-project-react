@@ -6,22 +6,24 @@ from foodgram_backend import constants
 
 
 class User(AbstractUser):
-    password = models.CharField(
-        _('password'), max_length=constants.CHARACTERS_150
-    )
-    email = models.EmailField(
-        _('email address'), max_length=constants.CHARACTERS_254, unique=True
-    )
-    first_name = models.CharField(
-        _('first name'), max_length=constants.CHARACTERS_150
-    )
-    last_name = models.CharField(
-        _('last name'), max_length=constants.CHARACTERS_150
-    )
     REQUIRED_FIELDS = ('username', 'first_name', 'last_name')
     USERNAME_FIELD = 'email'
+    email = models.EmailField(
+        _('email address'),
+        max_length=constants.LIMITATION_CHARACTERS_EMAIL,
+        unique=True,
+    )
+    first_name = models.CharField(
+        _('first name'),
+        max_length=constants.LIMITATION_CHARACTERS_STANDART_USER_FIELDS,
+    )
+    last_name = models.CharField(
+        _('last name'),
+        max_length=constants.LIMITATION_CHARACTERS_STANDART_USER_FIELDS,
+    )
 
     class Meta:
+        ordering = ('username',)
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
@@ -31,10 +33,16 @@ class User(AbstractUser):
 
 class SubscribeUser(models.Model):
     user = models.ForeignKey(
-        User, related_name='follower', on_delete=models.CASCADE
+        User,
+        related_name='follower',
+        verbose_name='Подписчик',
+        on_delete=models.CASCADE,
     )
     author = models.ForeignKey(
-        User, related_name='following', on_delete=models.CASCADE
+        User,
+        related_name='following',
+        verbose_name='Автор',
+        on_delete=models.CASCADE,
     )
 
     class Meta:

@@ -1,19 +1,18 @@
 from colorfield.fields import ColorField
-from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from foodgram_backend import constants
-
-User = get_user_model()
+from users.models import User
 
 
 class Ingredient(models.Model):
     name = models.CharField(
-        'Имя ингредиента', max_length=constants.CHARACTERS_100
+        'Имя ингредиента', max_length=constants.LIMITATION_CHARACTERS_NAME
     )
     measurement_unit = models.CharField(
-        'Единица измерения', max_length=constants.CHARACTERS_20
+        'Единица измерения',
+        max_length=constants.LIMITATION_CHARACTERS_MEASUREMENT_UNIT,
     )
 
     class Meta:
@@ -32,10 +31,14 @@ class Ingredient(models.Model):
 
 class Tag(models.Model):
     name = models.CharField(
-        'Название тега', max_length=constants.CHARACTERS_100
+        'Название тега', max_length=constants.LIMITATION_CHARACTERS_NAME
     )
-    color = ColorField('Цвет')
-    slug = models.SlugField('Ссылка')
+    color = ColorField(
+        'Цвет', max_length=constants.LIMITATION_CHARACTERS_COLOR
+    )
+    slug = models.SlugField(
+        'Ссылка', max_length=constants.LIMITATION_CHARACTERS_NAME
+    )
 
     class Meta:
         verbose_name = 'Тег'
@@ -47,10 +50,14 @@ class Tag(models.Model):
 
 class Recipe(models.Model):
     author = models.ForeignKey(
-        User, on_delete=models.SET_NULL, related_name='recipes', null=True
+        User,
+        on_delete=models.SET_NULL,
+        related_name='recipes',
+        verbose_name='Автор',
+        null=True,
     )
     name = models.CharField(
-        'Название рецепта', max_length=constants.CHARACTERS_200
+        'Название рецепта', max_length=constants.LIMITATION_CHARACTERS_NAME
     )
     image = models.ImageField('Изображение', upload_to='recipes/')
     text = models.TextField('Описание рецепта')
@@ -60,7 +67,10 @@ class Recipe(models.Model):
     )
     cooking_time = models.PositiveSmallIntegerField(
         'Время на приготовление в минутах',
-        validators=(MinValueValidator(1), MaxValueValidator(10000)),
+        validators=(
+            MinValueValidator(constants.MIN_VALUE),
+            MaxValueValidator(constants.MAX_VALUE),
+        ),
     )
     pub_date = models.DateTimeField(
         'Дата и время добавления', auto_now_add=True, db_index=True
@@ -77,10 +87,16 @@ class Recipe(models.Model):
 
 class RecipeTag(models.Model):
     recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, related_name='recipesTag'
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name='Рецепт',
+        related_name='recipesTag',
     )
     tag = models.ForeignKey(
-        Tag, on_delete=models.CASCADE, related_name='tagsRecipes'
+        Tag,
+        on_delete=models.CASCADE,
+        verbose_name='Тег',
+        related_name='tagsRecipes',
     )
 
     class Meta:
@@ -106,7 +122,10 @@ class RecipeIngredient(models.Model):
     )
     amount = models.PositiveSmallIntegerField(
         'Количество',
-        validators=(MinValueValidator(1), MaxValueValidator(10000)),
+        validators=(
+            MinValueValidator(constants.MIN_VALUE),
+            MaxValueValidator(constants.MAX_VALUE),
+        ),
     )
 
     class Meta:
@@ -114,8 +133,10 @@ class RecipeIngredient(models.Model):
         verbose_name_plural = 'Ингредиенты рецептов'
 
     def __str__(self) -> str:
-        return f'''Ингредиент: {self.ingredient},
-        Рецепт: {self.recipe}, Количество: {self.amount}'''
+        return (
+            f'Ингредиент: {self.ingredient}, '
+            f'Рецепт: {self.recipe}, Количество: {self.amount}'
+        )
 
 
 class AbstractFavoriteShoppingModel(models.Model):
@@ -123,11 +144,13 @@ class AbstractFavoriteShoppingModel(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='%(app_label)s_%(class)s_user',
+        verbose_name='Пользователь',
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
         related_name='%(app_label)s_%(class)s_recipe',
+        verbose_name='Рецепт',
     )
 
     class Meta:
@@ -160,4 +183,4 @@ class ShoppingCart(AbstractFavoriteShoppingModel):
         ]
 
     def __str__(self) -> str:
-        return f'Список покупок пользователя {self.user}'
+        return f'Пользователь {self.user} - рецепт {self.recipe}'

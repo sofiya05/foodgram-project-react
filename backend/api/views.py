@@ -1,31 +1,32 @@
-from django.contrib.auth import get_user_model
 from django.db.models import Sum
-from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from djoser.views import UserViewSet as UVS
 from rest_framework import filters, permissions, viewsets
 from rest_framework.decorators import action
 
 from api.filters import AuthorAndTagFilter, IngredientFilter
 from api.permissions import IsAuthorizedOwnerOrReadOnly
 from api.serializers import (
+    CreateSubscribeUserSerializer,
     FavoriteRecipeSerializer,
     GetRecipeSerializer,
     IngredientSerializer,
     PostRecipeSerializer,
     ShoppingCartSerializer,
+    SubscribeUserSerializer,
     TagSerializer,
 )
-from foodgram_backend.methods import create_file, create_obj, mapping_delete
+from api.view_methods import create_file, create_obj, mapping_delete
 from recipes.models import (
     FavoriteRecipe,
     Ingredient,
     Recipe,
+    RecipeIngredient,
     ShoppingCart,
     Tag,
 )
-
-User = get_user_model()
+from users.models import SubscribeUser, User
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -81,23 +82,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         methods=['GET'],
         detail=False,
-        permission_classes=(permissions.IsAuthenticated,),
+        permission_classes=(permissions.IsAuthenticatedOrReadOnly,),
     )
     def download_shopping_cart(self, request):
         ingredients = (
-            (
-                ShoppingCart.objects.filter(
-                    recipe__recipes_shoppingcart_recipe__user=request.user
-                )
+            RecipeIngredient.objects.filter(
+                recipe__recipes_shoppingcart_recipe__user=request.user
             )
-            .values(
-                'recipe__recipes__ingredient__name',
-                'recipe__recipes__ingredient__measurement_unit',
-            )
-            .annotate(amount=Sum('recipe__recipes__amount'))
+            .values('ingredient__name', 'ingredient__measurement_unit')
+            .annotate(amount=Sum('amount'))
         )
-        file = create_file(request, ingredients)
-        return FileResponse(open(file.name, 'rb'))
+        return create_file(request, ingredients)
 
     @action(methods=['POST'], detail=True)
     def shopping_cart(self, request, pk=None):
@@ -112,3 +107,44 @@ class RecipeViewSet(viewsets.ModelViewSet):
             ShoppingCart.objects.filter(user=request.user, recipe_id=pk),
             'Этот рецепт не добавлен в ваш список покупок!',
         )
+
+
+class UserViewSet(UVS):
+    def get_permissions(self):
+        if self.action == 'me':
+            return (permissions.IsAuthenticated(),)
+        return super().get_permissions()
+
+    @action(
+        methods=['post'],
+        detail=True,
+        permission_classes=(permissions.IsAuthenticated,),
+    )
+    def subscribe(self, request, id=None):
+        get_object_or_404(User, pk=id)
+        return create_obj(
+            CreateSubscribeUserSerializer,
+            {'user': request.user.pk, 'author': id},
+            {'request': request},
+        )
+
+    @subscribe.mapping.delete
+    def del_subscribe(self, request, id=None):
+        get_object_or_404(User, pk=id)
+        return mapping_delete(
+            SubscribeUser.objects.filter(user=request.user, author__id=id),
+            'Вы не подписаны на этого пользователя!',
+        )
+
+    @action(
+        methods=['get'],
+        detail=False,
+    )
+    def subscriptions(self, request):
+        data = User.objects.filter(following__user=request.user)
+        print(data)
+        page = self.paginate_queryset(data)
+        serializer = SubscribeUserSerializer(
+            page, many=True, context={'request': request}
+        )
+        return self.get_paginated_response(serializer.data)

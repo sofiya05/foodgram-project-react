@@ -15,8 +15,12 @@ class AuthorAndTagFilter(FilterSet):
         method='filter_is_in_shopping_cart'
     )
 
+    class Meta:
+        model = Recipe
+        fields = ('tags', 'author')
+
     def filter_is_favorited(self, queryset, name, value):
-        if value and not self.request.user.is_anonymous:
+        if value and self.request.user.is_authenticated:
             return queryset.filter(
                 recipes_favoriterecipe_recipe__user=self.request.user
             )
@@ -28,7 +32,3 @@ class AuthorAndTagFilter(FilterSet):
                 recipes_shoppingcart_recipe__user=self.request.user
             )
         return queryset
-
-    class Meta:
-        model = Recipe
-        fields = ('tags', 'author')
