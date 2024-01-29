@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'drf_yasg',
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
@@ -58,6 +59,7 @@ TEMPLATES = [
     },
 ]
 
+LOGIN_URL = '/signin'
 
 REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_CLASSES': [
@@ -108,6 +110,12 @@ else:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Token': {'type': 'apiKey', 'name': 'Authorization', 'in': 'header'}
+    }
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {

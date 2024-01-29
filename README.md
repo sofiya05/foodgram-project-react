@@ -1,4 +1,4 @@
-# `<img src = "https://github.com/sofiya05/foodgram-project-react/actions/workflows/main.yml/badge.svg">`
+# <img src = "https://github.com/sofiya05/foodgram-project-react/actions/workflows/main.yml/badge.svg">
 
 # Foodgram
 
@@ -38,3 +38,13 @@ POSTGRES=True
 ```
 
 Замените `<ваш-секретный-ключ>`, `<ваш-пользователь-postgres>` `<ваши-хосты> (через , без пробелов)` и `<ваш-пароль-postgres>` на свои значения. Если вы предпочитаете использовать SQLite, установите `POSTGRES=False`. Обязательно сохраните файл `.env` в безопасном месте и не передавайте чувствительную информацию.
+
+
+## Ссылки
+
+Проект доступен по следующим ссылкам:
+
+* Сайт: [sonb.hopto.org](https://sonb.hopto.org/)
+* Админка: [sonb.hopto.org/admin](https://sonb.hopto.org/admin/)
+* API: [sonb.hopto.org/api](https://sonb.hopto.org/api/)
+* Документация: [sonb.hopto.org/api/docs/](https://sonb.hopto.org/api/docs/)
