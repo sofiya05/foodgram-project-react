@@ -45,6 +45,6 @@ POSTGRES=True
 Проект доступен по следующим ссылкам:
 
 * Сайт: [sonb.hopto.org](https://sonb.hopto.org/)
-* Админка: [sonb.hopto.org/admin](https://sonb.hopto.org/admin/)
-* API: [sonb.hopto.org/api](https://sonb.hopto.org/api/)
+* Админка: [sonb.hopto.org/admin/](https://sonb.hopto.org/admin/)
+* API: [sonb.hopto.org/api/](https://sonb.hopto.org/api/)
 * Документация: [sonb.hopto.org/api/docs/](https://sonb.hopto.org/api/docs/)
