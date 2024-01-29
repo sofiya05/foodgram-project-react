@@ -59,8 +59,6 @@ TEMPLATES = [
     },
 ]
 
-LOGIN_URL = '/signin'
-
 REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.UserRateThrottle',
@@ -110,13 +108,6 @@ else:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-
-
-SWAGGER_SETTINGS = {
-    'SECURITY_DEFINITIONS': {
-        'Token': {'type': 'apiKey', 'name': 'Authorization', 'in': 'header'}
-    }
-}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
