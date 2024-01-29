@@ -2,7 +2,7 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
-from foodgram_backend.constants import MIN_VALUE, MAX_VALUE
+from foodgram_backend.constants import MAX_VALUE, MIN_VALUE
 from recipes.models import (
     FavoriteRecipe,
     Ingredient,
