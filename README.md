@@ -1,4 +1,4 @@
-# <img src = "https://github.com/sofiya05/foodgram-project-react/actions/workflows/main.yml/badge.svg">
+# `<img src = "https://github.com/sofiya05/foodgram-project-react/actions/workflows/main.yml/badge.svg">`
 
 # Foodgram
 
