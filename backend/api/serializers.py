@@ -2,7 +2,7 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
-from foodgram_backend.constants import MIN_VALUE
+from foodgram_backend.constants import MIN_VALUE, MAX_VALUE
 from recipes.models import (
     FavoriteRecipe,
     Ingredient,
@@ -77,12 +77,14 @@ class AbstractFavoriteShoppingCartSerializer(serializers.ModelSerializer):
         return ShortRecipeSerializer(instance.recipe, read_only=True).data
 
     def validate(self, attrs):
-        self.Meta.validators = (
-            UniqueTogetherValidator(
-                queryset=self.Meta.model.objects.all(),
-                fields=('user', 'recipe'),
-            ),
-        )
+        if (
+            self.Meta.model.objects.filter(user=attrs['user'])
+            .filter(recipe=attrs['recipe'])
+            .exists()
+        ):
+            raise serializers.ValidationError(
+                'Пара user, recipe должны быть уникальными!'
+            )
         return attrs
 
 
@@ -150,15 +152,8 @@ class SubscribeUserSerializer(UserSerializer):
         if limit:
             try:
                 queryset = queryset[: int(limit)]
-            except ValueError as error:
-                raise serializers.ValidationError(
-                    {
-                        'ValueError': (
-                            'Ошибка преобразования'
-                            f'limit в int. Error: {error}'
-                        )
-                    }
-                )
+            except ValueError:
+                queryset
         return ShortRecipeSerializer(
             queryset, many=True, read_only=True, context=self.context
         ).data
@@ -230,7 +225,7 @@ class GetRecipeSerializer(serializers.ModelSerializer):
 
 class CreateIngredientRecipeSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
-    amount = serializers.IntegerField(min_value=MIN_VALUE)
+    amount = serializers.IntegerField(min_value=MIN_VALUE, max_value=MAX_VALUE)
 
     class Meta:
         model = RecipeIngredient
@@ -243,7 +238,9 @@ class PostRecipeSerializer(serializers.ModelSerializer):
     )
     ingredients = CreateIngredientRecipeSerializer(many=True)
     image = Base64ImageField()
-    cooking_time = serializers.IntegerField(min_value=MIN_VALUE)
+    cooking_time = serializers.IntegerField(
+        min_value=MIN_VALUE, max_value=MAX_VALUE
+    )
 
     class Meta:
         model = Recipe
@@ -286,7 +283,8 @@ class PostRecipeSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         return GetRecipeSerializer(instance, context=self.context).data
 
-    def create_obj(self, recipe, ingredients):
+    @staticmethod
+    def create_obj(recipe, ingredients):
         recipe_ingredient_objects = [
             RecipeIngredient(
                 recipe=recipe,

@@ -91,6 +91,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
             .values('ingredient__name', 'ingredient__measurement_unit')
             .annotate(amount=Sum('amount'))
+            .order_by('ingredient__name')
         )
         return create_file(request, ingredients)
 
@@ -142,7 +143,6 @@ class UserViewSet(UVS):
     )
     def subscriptions(self, request):
         data = User.objects.filter(following__user=request.user)
-        print(data)
         page = self.paginate_queryset(data)
         serializer = SubscribeUserSerializer(
             page, many=True, context={'request': request}

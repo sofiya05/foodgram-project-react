@@ -12,7 +12,7 @@ class Ingredient(models.Model):
     )
     measurement_unit = models.CharField(
         'Единица измерения',
-        max_length=constants.LIMITATION_CHARACTERS_MEASUREMENT_UNIT,
+        max_length=constants.LIMITATION_CHARACTERS_NAME,
     )
 
     class Meta:
@@ -51,10 +51,9 @@ class Tag(models.Model):
 class Recipe(models.Model):
     author = models.ForeignKey(
         User,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         related_name='recipes',
         verbose_name='Автор',
-        null=True,
     )
     name = models.CharField(
         'Название рецепта', max_length=constants.LIMITATION_CHARACTERS_NAME
@@ -68,8 +67,14 @@ class Recipe(models.Model):
     cooking_time = models.PositiveSmallIntegerField(
         'Время на приготовление в минутах',
         validators=(
-            MinValueValidator(constants.MIN_VALUE),
-            MaxValueValidator(constants.MAX_VALUE),
+            MinValueValidator(
+                constants.MIN_VALUE,
+                message=f'Значение не может быть ниже {constants.MIN_VALUE}',
+            ),
+            MaxValueValidator(
+                constants.MAX_VALUE,
+                message=f'Значение не может быть больше {constants.MAX_VALUE}',
+            ),
         ),
     )
     pub_date = models.DateTimeField(
