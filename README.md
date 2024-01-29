@@ -1,4 +1,4 @@
-# <img src = "https://github.com/sofiya05/foodgram-project-react/actions/workflows/main.yml/badge.svg">
+# `<img src = "https://github.com/sofiya05/foodgram-project-react/actions/workflows/main.yml/badge.svg">`
 
 # Foodgram
 
@@ -21,13 +21,6 @@ Foodgram - это проект, предназначенный для публи
 3. Загрузите данные из CSV-файла в контейнер (включено в проект) с помощью следующей команды: `docker compose -f docker-compose.production.yml exec backend python manage.py upload_csv`
 4. Перезапустите композицию с помощью следующей команды: `docker compose -f docker-compose.production.yml restart`
 
-## Учетная запись суперпользователя
-
-Для входа в админскую панель проекта используйте следующие учетные данные:
-
-* **Логин:** [dev@yandex.ru]()
-* **Пароль:** qwerty12345
-
 ## Конфигурация файла .env
 
 Заполните файл `.env` следующей информацией:
@@ -35,7 +28,7 @@ Foodgram - это проект, предназначенный для публи
 ```plaintext
 SECRET_KEY=django-insecure-<ваш-секретный-ключ>
 DEBUG=True
-ALLOWED_HOSTS=127.0.0.1,localhost,84.201.160.140
+ALLOWED_HOSTS=<ваши-хосты>
 POSTGRES_USER=<ваш-пользователь-postgres>
 POSTGRES_PASSWORD=<ваш-пароль-postgres>
 POSTGRES_DB=foodgram
@@ -44,4 +37,4 @@ DB_PORT=5432
 POSTGRES=True
 ```
 
-Замените `<ваш-секретный-ключ>`, `<ваш-пользователь-postgres>` и `<ваш-пароль-postgres>` на свои значения. Если вы предпочитаете использовать SQLite, установите `POSTGRES=False`. Обязательно сохраните файл `.env` в безопасном месте и не передавайте чувствительную информацию.
+Замените `<ваш-секретный-ключ>`, `<ваш-пользователь-postgres>` `<ваши-хосты> (через , без пробелов)` и `<ваш-пароль-postgres>` на свои значения. Если вы предпочитаете использовать SQLite, установите `POSTGRES=False`. Обязательно сохраните файл `.env` в безопасном месте и не передавайте чувствительную информацию.
