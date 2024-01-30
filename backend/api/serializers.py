@@ -77,11 +77,9 @@ class AbstractFavoriteShoppingCartSerializer(serializers.ModelSerializer):
         return ShortRecipeSerializer(instance.recipe, read_only=True).data
 
     def validate(self, attrs):
-        if (
-            self.Meta.model.objects.filter(user=attrs['user'])
-            .filter(recipe=attrs['recipe'])
-            .exists()
-        ):
+        if self.Meta.model.objects.filter(
+            user=attrs['user'], recipe=attrs['recipe']
+        ).exists():
             raise serializers.ValidationError(
                 'Пара user, recipe должны быть уникальными!'
             )
@@ -153,7 +151,7 @@ class SubscribeUserSerializer(UserSerializer):
             try:
                 queryset = queryset[: int(limit)]
             except ValueError:
-                queryset
+                pass
         return ShortRecipeSerializer(
             queryset, many=True, read_only=True, context=self.context
         ).data
